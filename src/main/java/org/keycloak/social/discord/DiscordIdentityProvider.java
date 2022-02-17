@@ -65,11 +65,26 @@ public class DiscordIdentityProvider extends AbstractOAuth2IdentityProvider<Disc
         return PROFILE_URL;
     }
 
+    @Override
     protected BrokeredIdentityContext extractIdentityFromProfile(EventBuilder event, JsonNode profile) {
-        BrokeredIdentityContext user = new BrokeredIdentityContext(getJsonProperty(profile, "id"), getConfig());
+        String id = getJsonProperty(profile, "id");
+        String username = getJsonProperty(profile, "username");
+        String avatarHash = getJsonProperty(profile, "avatar");
+        String locale = getJsonProperty(profile, "locale");
 
-        user.setUsername(getJsonProperty(profile, "username") + "#" + getJsonProperty(profile, "discriminator"));
-        user.setEmail(getJsonProperty(profile, "email"));
+        BrokeredIdentityContext user = new BrokeredIdentityContext(id, getConfig());
+
+        user.setUsername(id);
+        user.setEmail(id + "@discord.com");
+
+        user.setFirstName(username);
+        user.setLastName("");
+        user.setUserAttribute("discord_username", username);
+
+        user.setUserAttribute("locale", locale);
+        user.setUserAttribute("discord_id", id);
+        user.setUserAttribute("picture", "https://cdn.discordapp.com/avatars/" + id + "/" + avatarHash + ".jpg");
+
         user.setIdp(this);
 
         AbstractJsonUserAttributeMapper.storeUserProfileForMapper(user, profile, getConfig().getAlias());
